@@ -2,7 +2,6 @@ import logging
 import os
 import requests
 import time
-import telegram
 from dotenv import load_dotenv
 from telebot import TeleBot
 
