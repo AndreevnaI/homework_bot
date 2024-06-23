@@ -2,6 +2,7 @@ import logging
 import os
 import requests
 import time
+import telegram
 from dotenv import load_dotenv
 from telebot import TeleBot
 
@@ -41,7 +42,7 @@ def check_tokens():
 def send_message(bot, message):
     """Отправляет сообщение в Telegram чат."""
     try:
-        bot.send_massage(chat_id=TELEGRAM_CHAT_ID, text=message)
+        bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.debug(f'Сообщение {message} отправлено.')
     except Exception as error:
         logging.error(f'Ошибка при отправке сообщения: {error}')
