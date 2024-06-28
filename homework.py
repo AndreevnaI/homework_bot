@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from telebot import TeleBot
 
 from http import HTTPStatus
+import exceptions
 
 
 load_dotenv()
@@ -41,10 +42,12 @@ def check_tokens():
 def send_message(bot, message):
     """Отправляет сообщение в Telegram чат."""
     try:
+        logging.info(f'Бот отправил сообщение {message}')
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
         logging.debug(f'Сообщение {message} отправлено.')
     except Exception as error:
         logging.error(f'Ошибка при отправке сообщения: {error}')
+        raise exceptions.MessageError(f'Ошибка в отправке сообщения {error}')
 
 
 def get_api_answer(timestamp):
@@ -65,18 +68,22 @@ def get_api_answer(timestamp):
 def check_response(response):
     """Проверка полученного ответа."""
     if not isinstance(response, dict):
-        logging.error('Ответ API не является словарем.')
-        raise TypeError('Ответ API не является словарем.')
+        message = 'Ответ API не является словарем.'
+        logging.error(message)
+        raise TypeError(message)
     if not response:
-        logging.error('Ответ содержит пустой словарь.')
-        raise KeyError('Ответ содержит пустой словарь.')
+        message = 'Ответ содержит пустой словарь.'
+        logging.error(message)
+        raise KeyError(message)
     homeworks = response.get('homeworks')
     if not isinstance(homeworks, list):
-        logging.error('Структура данных не соответствует ожиданиям.')
-        raise TypeError('Структура данных не соответствует ожиданиям.')
+        message = 'Структура данных не соответствует ожиданиям.'
+        logging.error(message)
+        raise TypeError(message)
     if 'homeworks' not in response:
-        logging.error('Отсутствие ожидаемого ключа в ответе.')
-        raise KeyError('Отсутствие ожидаемого ключа в ответе.')
+        message = 'Отсутствие ожидаемого ключа в ответе.'
+        logging.error(message)
+        raise exceptions.NameKeyError(message)
     return homeworks
 
 
@@ -86,16 +93,17 @@ def parse_status(homework):
         homework_name = homework.get('homework_name')
         if not homework_name:
             logging.error(f'Отсутствует поле: {homework_name}')
-            raise KeyError
+            raise KeyError()
         homework_status = homework.get('status')
         if homework_status not in HOMEWORK_VERDICTS:
             logging.error(f'Неизвестный статус: {homework_status}')
-            raise KeyError
+            raise KeyError()
         verdict = HOMEWORK_VERDICTS[homework_status]
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
-        logging.error('Пустой словарь')
-        raise KeyError
+        message = 'Пустой словарь'
+        logging.error(message)
+        raise KeyError(message)
 
 
 def main():
@@ -104,7 +112,6 @@ def main():
         logging.critical('Отсутствует переменная окружения')
         exit()
 
-    # Создаем объект класса бота
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
 
